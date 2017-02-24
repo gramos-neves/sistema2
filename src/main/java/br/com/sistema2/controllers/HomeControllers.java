@@ -12,11 +12,11 @@ public class HomeControllers {
   
 	@RequestMapping("/")
 	public String home(){
-     
-		Runnable tarefa = new Tarefa();
-		Thread thread = new Thread(tarefa);
-		thread.start();
 		return "home";		
 	}
+	
+	
+	
+	
 	
 }

@@ -10,15 +10,28 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Scanner;
 
-import br.com.sistema2.models.Business;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
+
+import br.com.sistema2.dao.BusinessDao;
+import br.com.sistema2.models.Business;
 
 
 public class Tarefa implements Runnable {
 
 	private Business business;
+	private BusinessDao bussinessDao;
 	
-	
+	public Tarefa(BusinessDao bussinessDao) {
+		this.bussinessDao = bussinessDao;
+	}
+
+
 	@Override
 	public void run() {
 		 String linhas[];
@@ -38,13 +51,13 @@ public class Tarefa implements Runnable {
 						
 					}else if(linha.length == 9)
 					{
-						salvar(linha[0], linha[1], linha[2], linha[3] , linha[5], linha[6], linha[8]);
+						salvar(linha[0], linha[1], linha[2], linha[3] , linha[5], linha[6], linha[8],linha[4]);
 						//System.out.println(linha[0] + " " + linha[1] + " " + linha[2] + " " + linha[3] + " " + linha[4] + " " + linha[5] + " " + linha[6] + " " + linha[7] + " " + linha[8]  );
 					    lista();
 					}
 					else if(linha.length == 14)
 					{
-						salvar(linha[0], linha[1], linha[2], linha[3] , linha[5], linha[6], linha[8]);
+						salvar(linha[0], linha[1], linha[2], linha[3] , linha[5], linha[6], linha[8],linha[4]);
 						//System.out.println(linha[0] + " " + linha[1] + " " + linha[2] + " " + linha[3] + " " + linha[4] + " " + linha[5] + " " + linha[6] + " " + linha[7] + " " + linha[8] + " " + linha[9] + " " + linha[10] + " " + linha[11] + " " + linha[12] + " " + linha[13]  );
 						 lista();
 					}
@@ -58,8 +71,9 @@ public class Tarefa implements Runnable {
 	}
 	
 	
-	public  void salvar(String data, String horaInicial, String tronco, String ramal, String duracao, String origem, String TipoLicacao){
+	public  void salvar(String data, String horaInicial, String tronco, String ramal, String duracao, String origem, String TipoLicacao,String duracaoToque){
 		 business = new Business();
+		// bussinessDao = new BusinessDao();
 		try {
 			business.setData(converteData(data + " " + horaInicial));
 		} catch (ParseException e) {
@@ -73,12 +87,13 @@ public class Tarefa implements Runnable {
 	    business.setDuracaoLigacao(duracao);
 	    business.setOrigem(origem);
 	    business.setTipoLigacao(TipoLicacao);
-	    
+	    business.setDuracaoToque(duracaoToque);
+	    bussinessDao.salvar(business);
 	}
 	
 	public  void lista(){
 		SimpleDateFormat stf = new SimpleDateFormat("dd/MM/yy");
-		System.out.println(stf.format(business.getData()) + " " + business.getHoraInicial() + " " + business.getHoraFinal() + " " + business.getRamal() + " " + business.getOrigem() + " " + business.getTipoLigacao() + " " + business.getTronco() + " " + business.getDuracaoLigacao()  );
+		System.out.println(stf.format(business.getData()) + " " + business.getHoraInicial() + " " + business.getHoraFinal() + " " + business.getRamal() + " " + business.getOrigem() + " " + business.getTipoLigacao() + " " + business.getTronco() + " " + business.getDuracaoLigacao() + " " + business.getDuracaoToque()  );
 	}
 	
 	public  Date converteData(String d)
@@ -92,34 +107,29 @@ public class Tarefa implements Runnable {
 	
 	
 	public  String SomaHora(String tempo,String segundos){
-		if (tempo.equals("")) {
-		     
+		if (tempo.equals("")) {}
+			    String[] tempo2 = tempo.split(":");
+			    int hora = Integer.parseInt(tempo2[0]);
+			    int minuto = Integer.parseInt(tempo2[1]);
+			    int segundo = Integer.parseInt(tempo2[2]);
+			    
+			    GregorianCalendar gc = new GregorianCalendar();  
+			    SimpleDateFormat sdff = new SimpleDateFormat( "HH:mm:ss" );
+			    Calendar cal = Calendar.getInstance();
+	
+			    cal.set(Calendar.HOUR_OF_DAY, hora);
+			    cal.set(Calendar.MINUTE, minuto);
+			    cal.set(Calendar.SECOND, segundo);
+			    gc.setTime(cal.getTime());
+			    gc.add(Calendar.SECOND, CalcularSegundos(segundos));
+			    
+			    return sdff.format(gc.getTime());
 		    }
-		    String[] tempo2 = tempo.split(":");
-		    int hora = Integer.parseInt(tempo2[0]);
-		    int minuto = Integer.parseInt(tempo2[1]);
-		    int segundo = Integer.parseInt(tempo2[2]);
-		    
-		    GregorianCalendar gc = new GregorianCalendar();  
-		    SimpleDateFormat sdff = new SimpleDateFormat( "HH:mm:ss" );
-		    Calendar cal = Calendar.getInstance();
-
-		    cal.set(Calendar.HOUR_OF_DAY, hora);
-		    cal.set(Calendar.MINUTE, minuto);
-		    cal.set(Calendar.SECOND, segundo);
-		    gc.setTime(cal.getTime());
-		    gc.add(Calendar.SECOND, CalcularSegundos(segundos));
-		    
-		    return sdff.format(gc.getTime());
-		    
-	}
 	
 	
 		  public int CalcularSegundos(String tempo)
 		  {
-			 
-			  
-		    if (tempo.equals("")) {
+			if (tempo.equals("")) {
 		      return 0;
 		    }
 		    String[] tempo2 = tempo.split(":");
